@@ -1,0 +1,238 @@
+@baseUrl = http://localhost:8080
+
+# Os IDs abaixo correspondem aos dados iniciais.
+@solicitanteId = 1
+@tecnicoId = 3
+# Após abrir um chamado, copie o ID da resposta para estas variáveis.
+@chamadoId = 1
+@chamadoCancelarId = 2
+# Para os exemplos de cadastro, ajuste os IDs com o retorno de cada POST.
+@setorNovoId = 3
+@categoriaNovaId = 5
+@usuarioNovoId = 5
+
+### Listar setores
+GET {{baseUrl}}/setores?nome=tecnologia&page=0&size=10&sort=nome,asc
+
+### Buscar setor
+GET {{baseUrl}}/setores/1
+
+### Criar setor (copie o ID para setorNovoId)
+POST {{baseUrl}}/setores
+Content-Type: application/json
+
+{
+  "nome": "Biblioteca",
+  "sigla": "BIB"
+}
+
+### Atualizar setor
+PUT {{baseUrl}}/setores/{{setorNovoId}}
+Content-Type: application/json
+
+{
+  "nome": "Biblioteca do campus",
+  "sigla": "BIB"
+}
+
+### Categorias de um setor, com paginação e filtro
+GET {{baseUrl}}/setores/1/categorias?nome=rede&page=0&size=10&sort=nome,asc
+
+### Listar categorias
+GET {{baseUrl}}/categorias?nome=rede&setorId=1&page=0&size=10
+
+### Buscar categoria
+GET {{baseUrl}}/categorias/1
+
+### Criar categoria (copie o ID para categoriaNovaId)
+POST {{baseUrl}}/categorias
+Content-Type: application/json
+
+{
+  "nome": "Consulta ao acervo",
+  "descricao": "Dúvidas e problemas no acesso ao catálogo.",
+  "setorId": {{setorNovoId}}
+}
+
+### Atualizar categoria
+PUT {{baseUrl}}/categorias/{{categoriaNovaId}}
+Content-Type: application/json
+
+{
+  "nome": "Catálogo da biblioteca",
+  "descricao": "Suporte ao acesso e à consulta do catálogo.",
+  "setorId": {{setorNovoId}}
+}
+
+### Excluir a categoria criada, antes de excluir seu setor
+DELETE {{baseUrl}}/categorias/{{categoriaNovaId}}
+
+### Excluir o setor criado, depois de excluir sua categoria
+DELETE {{baseUrl}}/setores/{{setorNovoId}}
+
+### Listar usuários
+GET {{baseUrl}}/usuarios?nome=marcos&tipo=TECNICO&setorId=1&page=0&size=10&sort=nome,asc
+
+### Buscar usuário
+GET {{baseUrl}}/usuarios/1
+
+### Criar solicitante (copie o ID para usuarioNovoId)
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Pedro Oliveira",
+  "email": "pedro.oliveira@escolar.ifrn.edu.br",
+  "matricula": "2026101003",
+  "tipo": "SOLICITANTE"
+}
+
+### Atualizar usuário
+PUT {{baseUrl}}/usuarios/{{usuarioNovoId}}
+Content-Type: application/json
+
+{
+  "nome": "Pedro Henrique Oliveira",
+  "email": "pedro.oliveira@escolar.ifrn.edu.br",
+  "matricula": "2026101003",
+  "tipo": "SOLICITANTE",
+  "setorId": null
+}
+
+### Abrir chamado (copie o ID para chamadoId)
+POST {{baseUrl}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "Wi-Fi do laboratório sem conexão",
+  "descricao": "A rede aparece, mas os computadores não conseguem acessar a internet.",
+  "local": "Laboratório de Informática 2",
+  "prioridade": "ALTA",
+  "solicitanteId": {{solicitanteId}},
+  "categoriaId": 1
+}
+
+### Listar chamados sem filtros
+GET {{baseUrl}}/chamados?page=0&size=10&sort=dataAbertura,desc
+
+### Combinar filtros (execute enquanto o chamado ainda estiver ABERTO)
+GET {{baseUrl}}/chamados?status=ABERTO&setorId=1&prioridade=ALTA&categoriaId=1&solicitanteId={{solicitanteId}}&page=0&size=10&sort=dataAbertura,desc
+
+### Filtrar por período; ajuste as datas conforme os chamados criados
+GET {{baseUrl}}/chamados?dataInicio=2026-10-01&dataFim=2026-10-31&page=0&size=10
+
+### Detalhar chamado e histórico
+GET {{baseUrl}}/chamados/{{chamadoId}}
+
+### Chamados de um solicitante
+GET {{baseUrl}}/usuarios/{{solicitanteId}}/chamados?status=ABERTO&page=0&size=10&sort=dataAbertura,desc
+
+### Solicitante acrescenta detalhes antes do atendimento
+POST {{baseUrl}}/chamados/{{chamadoId}}/interacoes
+Content-Type: application/json
+
+{
+  "autorId": {{solicitanteId}},
+  "texto": "O problema começou na primeira aula e afeta todos os computadores."
+}
+
+### Técnico assume o chamado
+PATCH {{baseUrl}}/chamados/{{chamadoId}}/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": {{tecnicoId}}
+}
+
+### Chamados atribuídos a um técnico
+GET {{baseUrl}}/usuarios/{{tecnicoId}}/chamados?status=EM_ATENDIMENTO&page=0&size=10
+
+### Filtrar chamados pelo técnico atribuído
+GET {{baseUrl}}/chamados?tecnicoId={{tecnicoId}}&status=EM_ATENDIMENTO&page=0&size=10
+
+### Técnico registra andamento
+POST {{baseUrl}}/chamados/{{chamadoId}}/interacoes
+Content-Type: application/json
+
+{
+  "autorId": {{tecnicoId}},
+  "texto": "Estou verificando o ponto de acesso do laboratório."
+}
+
+### Resolver chamado
+PATCH {{baseUrl}}/chamados/{{chamadoId}}/resolver
+Content-Type: application/json
+
+{
+  "tecnicoId": {{tecnicoId}},
+  "solucao": "Ponto de acesso reiniciado e conexão testada nos computadores."
+}
+
+### Abrir outro chamado para testar o cancelamento (copie o ID para chamadoCancelarId)
+# A ausência de prioridade resulta em MEDIA.
+POST {{baseUrl}}/chamados
+Content-Type: application/json
+
+{
+  "titulo": "Projetor não liga",
+  "descricao": "O projetor não responde ao controle remoto.",
+  "local": "Sala 12",
+  "solicitanteId": {{solicitanteId}},
+  "categoriaId": 2
+}
+
+### Técnico de outro setor não pode assumir (409, antes de cancelar)
+PATCH {{baseUrl}}/chamados/{{chamadoCancelarId}}/assumir
+Content-Type: application/json
+
+{
+  "tecnicoId": 4
+}
+
+### Cancelar enquanto o chamado está ABERTO
+PATCH {{baseUrl}}/chamados/{{chamadoCancelarId}}/cancelar
+Content-Type: application/json
+
+{
+  "solicitanteId": {{solicitanteId}}
+}
+
+### Chamado encerrado não aceita interações (409)
+POST {{baseUrl}}/chamados/{{chamadoId}}/interacoes
+Content-Type: application/json
+
+{
+  "autorId": {{solicitanteId}},
+  "texto": "Tentativa após o encerramento."
+}
+
+### Categoria com chamados não pode ser excluída (409)
+DELETE {{baseUrl}}/categorias/1
+
+### Setor com chamados não pode ser excluído (409)
+DELETE {{baseUrl}}/setores/1
+
+### Email duplicado (409)
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Outro cadastro",
+  "email": "ana.beatriz@escolar.ifrn.edu.br",
+  "matricula": "2026999999",
+  "tipo": "SOLICITANTE"
+}
+
+### Dados inválidos (400)
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nome": "",
+  "email": "email-sem-formato",
+  "matricula": "2026999999",
+  "tipo": "SOLICITANTE"
+}
+
+### Recurso inexistente (404)
+GET {{baseUrl}}/chamados/999999
