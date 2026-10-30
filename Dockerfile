@@ -8,7 +8,7 @@ RUN mvn -B -q package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S chamados && adduser -S chamados -G chamados
-COPY --from=build /app/target/sistema-chamados-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/sistema-chamados-1.0.0.jar app.jar
 USER chamados
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
