@@ -10,7 +10,7 @@
     </parent>
     <groupId>br.edu.ifrn</groupId>
     <artifactId>sistema-chamados</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>Sistema de Chamados do IFRN</name>
     <description>API para abertura e acompanhamento de chamados de suporte.</description>
     <properties>
